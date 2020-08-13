@@ -19,6 +19,15 @@ Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 Plug 'neomake/neomake', { 'for': ['rust', 'haskell', 'typescript'] }
 Plug 'airblade/vim-gitgutter'
 Plug 'w0rp/ale'
+Plug 'Yggdroot/indentLine'
+Plug 'ncm2/ncm2'
+Plug 'roxma/nvim-yarp'
+Plug 'ncm2/ncm2-bufword'
+Plug 'ncm2/ncm2-path'
+Plug 'ncm2/ncm2-jedi'
+Plug 'Chiel92/vim-autoformat'
+Plug 'lervag/vimtex'
+Plug 'Konfekt/FastFold'
 
 " FZF / Ctrlp for file navigation
 if executable('fzf')
@@ -60,6 +69,7 @@ if (has("nvim"))
   let $NVIM_TUI_ENABLE_TRUE_COLOR=1
 endif
 syntax on
+syntax enable
 set background=dark
 colorscheme RightSize
 hi Cursor guifg=green guibg=green
@@ -109,6 +119,8 @@ vnoremap <up> <nop>
 " j/k move virtual lines, gj/jk move physical lines
 noremap <silent> <expr> j (v:count == 0 ? 'gj' : 'j')
 noremap <silent> <expr> k (v:count == 0 ? 'gk' : 'k')
+
+noremap <F3> :Autoformat<CR>
 
 " Remap increment and decrement numbers to something that works on macs/linux
 nnoremap <A-a> <C-a>
@@ -185,7 +197,7 @@ set relativenumber
 set title
 
 " mouse
-set mouse-=a
+set mouse=a
 
 " utf-8 ftw
 " nvim sets utf8 by default, wrap in if because prevents reloading vimrc
@@ -328,6 +340,22 @@ let g:neomake_warning_sign = {'text': '?'}
 " Changes highlighting links to use Type/Structure
 let g:haskell_classic_highlighting = 1
 
+augroup NCM2
+  autocmd!
+  autocmd BufEnter * call ncm2#enable_for_buffer()
+  set completeopt=noinsert,menuone,noselect
+  inoremap <expr> <CR> (pumvisible() ? "\<c-y>\<cr>" : "\<CR>")
+  autocmd FileType tex call ncm2#register_source({
+    \ 'name': 'vimtex',
+    \ 'priority': 8,
+    \ 'scope': ['tex'],
+    \ 'mark': 'tex',
+    \ 'word_pattern': '\w+',
+    \ 'complete_pattern': g:vimtex#re#ncm2,
+    \ 'on_complete': ['ncm2#on_complete#omni', 'vimtex#complete#omnifunc'],
+    \ })
+augroup END
+
 augroup ghciMaps
   au!
   " Background process and window management
@@ -359,9 +387,22 @@ else
   let g:ghci_command_line_options = '-fobject-code'
 endif
 
+let g:tex_flavor = 'latex'
+let g:tex_conceal = ''
+let g:tex_fold_enaled = 0
+"let g:vimtex_fold_manual = 1
+let g:vimtex_latexmk_continuous = 1
+let g:vimtex_compiler_progname = 'nvr'
+
 " ALE
 let g:airline#extensions#ale#enabled = 1
-let g:ale_linters = {'go': ['golint', 'gofmt']}
+let g:airline#extension#ale#error_symbol = 'E:'
+let g:airline#extension#ale#warning_symbol = 'W:'
+"let g:ale_linters = {'go': ['golint', 'gofmt']}
+"let g:ale_linters = {'python': ['flake8']}
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 let g:ale_lint_delay = 800
 nmap <silent> <C-k> <Plug>(ale_previous_wrap)
 nmap <silent> <C-j> <Plug>(ale_next_wrap)
